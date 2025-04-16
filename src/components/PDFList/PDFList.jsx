@@ -1,12 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { listPDFs, getPDFUrl } from '../../services/s3Service';
-import { List, ListItem, ListItemText, ListItemButton, Typography, Paper, Box, CircularProgress } from '@mui/material';
+import { List, ListItem, ListItemText, ListItemButton, Typography, Paper, Box, CircularProgress, Avatar } from '@mui/material';
 import { InsertDriveFile } from '@mui/icons-material';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set up PDF.js worker
+import 'pdfjs-dist/build/pdf.worker.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
 const PDFList = ({ onSelectPDF }) => {
   const [pdfs, setPdfs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [thumbnails, setThumbnails] = useState({});
 
   useEffect(() => {
     const fetchPDFs = async () => {
@@ -19,6 +25,11 @@ const PDFList = ({ onSelectPDF }) => {
         );
         setPdfs(sortedPdfs);
         setError(null);
+        
+        // Generate thumbnails for each PDF
+        for (const pdf of sortedPdfs) {
+          generateThumbnail(pdf.Key);
+        }
       } catch (err) {
         console.error('Failed to fetch PDFs:', err);
         setError('Failed to load PDFs. Please try again later.');
@@ -30,6 +41,49 @@ const PDFList = ({ onSelectPDF }) => {
     fetchPDFs();
   }, []);
 
+  // Generate thumbnail for a PDF
+  const generateThumbnail = async (pdfKey) => {
+    try {
+      const url = await getPDFUrl(pdfKey);
+      
+      // Load the PDF document
+      const loadingTask = pdfjsLib.getDocument(url);
+      const pdf = await loadingTask.promise;
+      
+      // Get the first page
+      const page = await pdf.getPage(1);
+      
+      // Set scale for thumbnail (smaller than full view)
+      const viewport = page.getViewport({ scale: 0.2 });
+      
+      // Create canvas for thumbnail
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      
+      // Render the PDF page to canvas
+      const renderContext = {
+        canvasContext: context,
+        viewport: viewport
+      };
+      
+      await page.render(renderContext).promise;
+      
+      // Convert canvas to data URL
+      const thumbnailUrl = canvas.toDataURL();
+      
+      // Update thumbnails state
+      setThumbnails(prev => ({
+        ...prev,
+        [pdfKey]: thumbnailUrl
+      }));
+    } catch (err) {
+      console.error('Error generating thumbnail:', err);
+      // Continue without thumbnail
+    }
+  };
+  
   const handleSelectPDF = async (pdf) => {
     try {
       const url = await getPDFUrl(pdf.Key);
@@ -75,7 +129,15 @@ const PDFList = ({ onSelectPDF }) => {
           {pdfs.map((pdf) => (
             <ListItem key={pdf.Key} divider>
               <ListItemButton onClick={() => handleSelectPDF(pdf)}>
-                <InsertDriveFile sx={{ mr: 2, color: '#f44336' }} />
+                {thumbnails[pdf.Key] ? (
+                  <Avatar 
+                    src={thumbnails[pdf.Key]} 
+                    variant="rounded" 
+                    sx={{ width: 56, height: 56, mr: 2, bgcolor: '#f5f5f5' }}
+                  />
+                ) : (
+                  <InsertDriveFile sx={{ mr: 2, color: '#f44336', fontSize: 40 }} />
+                )}
                 <ListItemText 
                   primary={pdf.Key} 
                   secondary={

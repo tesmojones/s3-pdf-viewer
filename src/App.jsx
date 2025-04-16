@@ -30,7 +30,7 @@ function App() {
       </AppBar>
       
       <Container maxWidth="lg">
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
             <Box sx={{ mb: 3 }}>
               <PDFUpload onUploadSuccess={handleUploadSuccess} />
