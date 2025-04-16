@@ -80,15 +80,15 @@ const PDFUpload = ({ onUploadSuccess }) => {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        Upload New PDF
+    <Paper elevation={3} sx={{ p: 1.5, mb: 2 }}>
+      <Typography variant="subtitle1" sx={{ mb: 1, textAlign: 'center' }}>
+        Upload PDF
       </Typography>
       
       {(error || success) && (
         <Alert 
           severity={error ? 'error' : 'success'}
-          sx={{ mb: 2 }}
+          sx={{ mb: 1, py: 0.5, fontSize: '0.75rem' }}
           action={
             <IconButton
               aria-label="close"
@@ -96,15 +96,15 @@ const PDFUpload = ({ onUploadSuccess }) => {
               size="small"
               onClick={handleCloseAlert}
             >
-              <Close fontSize="inherit" />
+              <Close fontSize="small" />
             </IconButton>
           }
         >
-          {error || 'PDF uploaded successfully!'}
+          {error || 'Upload successful!'}
         </Alert>
       )}
       
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 1 }}>
         <input
           accept="application/pdf"
           style={{ display: 'none' }}
@@ -120,26 +120,27 @@ const PDFUpload = ({ onUploadSuccess }) => {
             startIcon={<CloudUpload />}
             disabled={uploading}
             fullWidth
+            size="small"
           >
-            Select PDF File
+            Select PDF
           </Button>
         </label>
       </Box>
       
       {selectedFile && (
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Typography variant="body2" sx={{ flexGrow: 1, mr: 1 }} noWrap>
-            {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <Typography variant="caption" sx={{ flexGrow: 1, mr: 0.5 }} noWrap>
+            {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
           </Typography>
-          <IconButton size="small" onClick={handleClearFile} disabled={uploading}>
+          <IconButton size="small" onClick={handleClearFile} disabled={uploading} sx={{ p: 0.5 }}>
             <Close fontSize="small" />
           </IconButton>
         </Box>
       )}
       
       {uploadProgress > 0 && (
-        <Box sx={{ width: '100%', mb: 2 }}>
-          <LinearProgress variant="determinate" value={uploadProgress} />
+        <Box sx={{ width: '100%', mb: 1 }}>
+          <LinearProgress variant="determinate" value={uploadProgress} sx={{ height: 4 }} />
         </Box>
       )}
       
@@ -149,8 +150,9 @@ const PDFUpload = ({ onUploadSuccess }) => {
         onClick={handleUpload}
         disabled={!selectedFile || uploading}
         fullWidth
+        size="small"
       >
-        {uploading ? 'Uploading...' : 'Upload PDF'}
+        {uploading ? 'Uploading...' : 'Upload'}
       </Button>
     </Paper>
   );

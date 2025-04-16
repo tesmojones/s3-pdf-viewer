@@ -116,33 +116,43 @@ const PDFList = ({ onSelectPDF }) => {
   }
 
   return (
-    <Paper elevation={3} sx={{ maxHeight: '400px', overflow: 'auto', mb: 3 }}>
-      <Typography variant="h6" sx={{ p: 2, borderBottom: '1px solid #eee' }}>
+    <Paper elevation={3} sx={{ maxHeight: '70vh', overflow: 'auto', mb: 3 }}>
+      <Typography variant="subtitle1" sx={{ p: 1, borderBottom: '1px solid #eee', textAlign: 'center' }}>
         Available PDFs
       </Typography>
       {pdfs.length === 0 ? (
-        <Typography sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
+        <Typography sx={{ p: 2, textAlign: 'center', color: 'text.secondary', fontSize: '0.85rem' }}>
           No PDFs found. Upload one to get started.
         </Typography>
       ) : (
-        <List>
+        <List dense disablePadding>
           {pdfs.map((pdf) => (
-            <ListItem key={pdf.Key} divider>
-              <ListItemButton onClick={() => handleSelectPDF(pdf)}>
+            <ListItem key={pdf.Key} divider disablePadding>
+              <ListItemButton 
+                onClick={() => handleSelectPDF(pdf)}
+                sx={{ py: 1 }}
+              >
                 {thumbnails[pdf.Key] ? (
                   <Avatar 
                     src={thumbnails[pdf.Key]} 
                     variant="rounded" 
-                    sx={{ width: 56, height: 56, mr: 2, bgcolor: '#f5f5f5' }}
+                    sx={{ width: 40, height: 40, mr: 1, bgcolor: '#f5f5f5' }}
                   />
                 ) : (
-                  <InsertDriveFile sx={{ mr: 2, color: '#f44336', fontSize: 40 }} />
+                  <InsertDriveFile sx={{ mr: 1, color: '#f44336', fontSize: 24 }} />
                 )}
                 <ListItemText 
-                  primary={pdf.Key} 
+                  primary={
+                    <Typography noWrap variant="body2" sx={{ fontWeight: 'medium' }}>
+                      {pdf.Key.replace(/\.pdf$/i, '')}
+                    </Typography>
+                  }
                   secondary={
-                    `Size: ${(pdf.Size / 1024).toFixed(2)} KB • Last modified: ${new Date(pdf.LastModified).toLocaleDateString()}`
-                  } 
+                    <Typography variant="caption" noWrap>
+                      {`${(pdf.Size / 1024).toFixed(1)} KB • ${new Date(pdf.LastModified).toLocaleDateString()}`}
+                    </Typography>
+                  }
+                  sx={{ m: 0 }}
                 />
               </ListItemButton>
             </ListItem>

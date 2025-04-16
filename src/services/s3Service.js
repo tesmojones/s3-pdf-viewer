@@ -21,7 +21,11 @@ export const listPDFs = async () => {
     });
 
     const response = await s3Client.send(command);
-    return response.Contents || [];
+    // Filter to only include files with .pdf extension (case insensitive)
+    const pdfFiles = (response.Contents || []).filter(file => 
+      file.Key.toLowerCase().endsWith('.pdf')
+    );
+    return pdfFiles;
   } catch (error) {
     console.error('Error listing PDFs:', error);
     throw error;
