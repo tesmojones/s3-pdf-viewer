@@ -516,7 +516,7 @@ const PDFViewer = ({ pdfFile }) => {
       elevation={2} 
       sx={{ 
         height: '100%', 
-        width: '1100px',
+        width: '1000px',
         display: 'flex', 
         flexDirection: 'column',
         overflow: 'hidden',

@@ -85,13 +85,13 @@ function App() {
               <Grid 
                 item 
                 xs={12} // Takes full width on small screens if shown
-                md={2} 
-                lg={1.5} 
+                md={3} 
+                lg={2.5} 
                 sx={{ 
                   height: '100%',
                   overflow: 'auto',
                   transition: 'width 0.3s ease-in-out, opacity 0.3s ease-in-out', // Smooth transition
-                  width: isSidebarVisible ? { md: '16.6667%', lg: '12.5%' } : '0%', // Control width
+                  width: isSidebarVisible ? { md: '25%', lg: '20.8333%' } : '0%', // Control width
                   opacity: isSidebarVisible ? 1 : 0, // Control visibility
                   display: { xs: isSidebarVisible ? 'block' : 'none', md: 'block' } // Hide on xs when toggled off
                 }}
@@ -105,13 +105,33 @@ function App() {
                 />
               </Grid>
             )}
-            
+            {/* Modern vertical divider between sidebar and PDF viewer */}
+            {isSidebarVisible && (
+              <Grid item sx={{
+                display: { xs: 'none', md: 'flex' },
+                alignItems: 'stretch',
+                px: 0,
+                height: '100%',
+                minWidth: '0px',
+                zIndex: 2
+              }}>
+                <Box sx={{
+                  width: '2.5px',
+                  height: '100%',
+                  background: 'linear-gradient(180deg, #e3eafc 0%, #cfd8dc 100%)',
+                  boxShadow: '0 0 8px 0 rgba(33, 150, 243, 0.10)',
+                  borderRadius: '8px',
+                  marginY: 2,
+                  transition: 'background 0.3s',
+                }} />
+              </Grid>
+            )}
             {/* PDF Viewer - taking more available space */}
             <Grid 
               item 
               xs={12} // Always takes full width on small screens
-              md={isSidebarVisible ? 10 : 12} // Adjust width based on sidebar visibility
-              lg={isSidebarVisible ? 10.5 : 12} // Adjust width based on sidebar visibility
+              md={isSidebarVisible ? 9 : 12} // Adjust width based on sidebar visibility
+              lg={isSidebarVisible ? 9.5 : 12} // Adjust width based on sidebar visibility
               sx={{ 
                 height: '100%',
                 overflow: 'hidden',
