@@ -51,47 +51,57 @@ const PDFViewer = ({ pdfFile }) => {
     setZoomLevel(100);
     
     const loadPDF = async () => {
-      try {
-        // Cancel any previous loading task
-        if (loadingTask) {
-          loadingTask.destroy();
-        }
-        
-        // Load the PDF document with caching enabled
-        loadingTask = pdfjsLib.getDocument({
-          url: pdfFile.url,
-          cMapUrl: '/node_modules/pdfjs-dist/cmaps/',
-          cMapPacked: true,
-        });
-        
-        // Add progress callback
-        loadingTask.onProgress = (progress) => {
-          // You could add a progress indicator here if needed
-          // console.log(`Loading: ${Math.round(progress.loaded / progress.total * 100)}%`);
-        };
-        
-        const pdf = await loadingTask.promise;
-        
-        // Check if component is still mounted
-        if (!isMounted) return;
-        
-        setPdfDoc(pdf);
-        setPageCount(pdf.numPages);
-        
-        // Get saved bookmark if exists
-        const savedPage = getBookmark(pdfFile.name);
-        if (savedPage && savedPage > 0 && savedPage <= pdf.numPages) {
-          setPageNum(savedPage);
-        } else {
-          setPageNum(1);
-        }
-        
-        setLoading(false);
-      } catch (err) {
-        if (isMounted) {
-          console.error('Error loading PDF:', err);
-          setError('Failed to load PDF. Please check if the file is valid or try again later.');
+      let retries = 0;
+      const maxRetries = 10;
+      const retryDelay = 500;
+      while (retries < maxRetries) {
+        try {
+          // Cancel any previous loading task
+          if (loadingTask) {
+            loadingTask.destroy();
+          }
+          // Always decode the PDF URL before passing to pdfjsLib.getDocument
+          let pdfUrl;
+          try {
+            pdfUrl = decodeURIComponent(pdfFile.url);
+          } catch (e) {
+            pdfUrl = pdfFile.url;
+          }
+          loadingTask = pdfjsLib.getDocument({
+            url: pdfUrl,
+            cMapUrl: '/node_modules/pdfjs-dist/cmaps/',
+            cMapPacked: true
+          });
+          // Add progress callback
+          loadingTask.onProgress = (progress) => {
+            // You could add a progress indicator here if needed
+            // console.log(`Loading: ${Math.round(progress.loaded / progress.total * 100)}%`);
+          };
+          const pdf = await loadingTask.promise;
+          // Check if component is still mounted
+          if (!isMounted) return;
+          setPdfDoc(pdf);
+          setPageCount(pdf.numPages);
+          // Get saved bookmark if exists
+          const savedPage = getBookmark(pdfFile.name);
+          if (savedPage && savedPage > 0 && savedPage <= pdf.numPages) {
+            setPageNum(savedPage);
+          } else {
+            setPageNum(1);
+          }
           setLoading(false);
+          return;
+        } catch (err) {
+          retries++;
+          if (retries >= maxRetries) {
+            if (isMounted) {
+              console.error('Error loading PDF:', err);
+              setError('Failed to load PDF. Please check if the file is valid or try again later.');
+              setLoading(false);
+            }
+            return;
+          }
+          await new Promise(res => setTimeout(res, retryDelay));
         }
       }
     };
@@ -142,46 +152,37 @@ const PDFViewer = ({ pdfFile }) => {
   // Calculate appropriate scale based on container width
   useEffect(() => {
     if (!pdfDoc) return;
-    
+    let cancelled = false;
     const updateScale = async () => {
       try {
-        // Check if containerRef is available
         if (!containerRef.current) {
-          // If not available, try again after a short delay
           setTimeout(updateScale, 100);
           return;
         }
-        
-        const page = await pdfDoc.getPage(1); // Always use first page for consistent scaling
+        // Check if pdfDoc is still valid (not destroyed)
+        if (!pdfDoc || typeof pdfDoc.getPage !== "function" || pdfDoc.destroyed || !pdfDoc._pdfInfo) {
+          return;
+        }
+        const page = await pdfDoc.getPage(1);
+        if (cancelled) return;
         const viewport = page.getViewport({ scale: 1.0 });
-        
-        // Get container width (accounting for padding and the fixed container)
         const pdfContainer = containerRef.current.querySelector('[role="presentation"]') || containerRef.current;
-        const containerWidth = Math.min(pdfContainer.clientWidth - 40, 800); // Limit width for better proportions
-        
-        // Calculate scale to fit width
-        const newScale = containerWidth / viewport.width * 0.98; // 98% to add a small margin
-        
-        // Only update scale if it's significantly different or on first load
+        const containerWidth = Math.min(pdfContainer.clientWidth - 40, 800);
+        const newScale = containerWidth / viewport.width * 0.98;
         if (Math.abs(scale - newScale) > 0.05 || scale === 1.5) {
           setScale(newScale);
-          setZoomLevel(100); // Reset zoom level when auto-scaling
+          setZoomLevel(100);
         }
       } catch (err) {
         console.error('Error calculating scale:', err);
-        // If error occurs, try again after a delay (but not too many times)
         if (containerRef.current) {
           setTimeout(updateScale, 200);
         }
       }
     };
-    
-    // Delay to ensure container is properly sized and mounted
     const timer = setTimeout(() => {
       updateScale();
     }, 300);
-    
-    // Add resize listener with debounce
     let resizeTimer;
     const handleResize = () => {
       clearTimeout(resizeTimer);
@@ -191,70 +192,59 @@ const PDFViewer = ({ pdfFile }) => {
         }
       }, 200);
     };
-    
     window.addEventListener('resize', handleResize);
     return () => {
+      cancelled = true;
       window.removeEventListener('resize', handleResize);
       clearTimeout(timer);
       clearTimeout(resizeTimer);
     };
-  }, [pdfDoc]); // Remove scale dependency to prevent loops
+  }, [pdfDoc]);
   
   // Render page when pageNum or scale changes
   useEffect(() => {
     if (!pdfDoc) return;
-    
     let renderTask = null;
     let isMounted = true;
-    
     const renderPage = async () => {
       try {
         // Check if canvas is available
         if (!canvasRef.current) {
           if (isMounted) {
-            // Try again after a short delay
             setTimeout(renderPage, 50);
           }
           return;
         }
-        
+        // Check if pdfDoc is still valid (not destroyed)
+        if (!pdfDoc || typeof pdfDoc.getPage !== "function" || pdfDoc.destroyed || !pdfDoc._pdfInfo) {
+          return;
+        }
         setPageLoading(true);
-        
         // Get the page
         const page = await pdfDoc.getPage(pageNum);
-        
         // Set scale for responsive rendering
         const viewport = page.getViewport({ scale });
         const canvas = canvasRef.current;
-        
         // If canvas is no longer available (component unmounted), abort
         if (!canvas || !isMounted) return;
-        
         const context = canvas.getContext('2d');
-        
         // Clear previous content
         context.clearRect(0, 0, canvas.width, canvas.height);
-        
         // Set canvas dimensions to match the viewport
         canvas.height = viewport.height;
         canvas.width = viewport.width;
-        
         // Render the PDF page
         const renderContext = {
           canvasContext: context,
           viewport: viewport
         };
-        
         // Cancel any ongoing render task
         if (renderTask) {
           renderTask.cancel();
         }
-        
         // Start new render task
         renderTask = page.render(renderContext);
-        
         await renderTask.promise;
-        
         if (isMounted) {
           setPageLoading(false);
         }
@@ -267,12 +257,10 @@ const PDFViewer = ({ pdfFile }) => {
         }
       }
     };
-    
     // Add a small delay to ensure we don't have multiple render operations in quick succession
     const timer = setTimeout(() => {
       renderPage();
     }, 50);
-    
     return () => {
       isMounted = false;
       clearTimeout(timer);

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, CssBaseline, AppBar, Toolbar, Grid, useMediaQuery, useTheme, IconButton } from '@mui/material'
 import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon } from '@mui/icons-material'; // Import icons
 import PDFList from './components/PDFList/PDFList'
@@ -12,9 +13,29 @@ function App() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true); // State for sidebar visibility
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // On mount or URL change, check if the path matches a PDF
+    const path = location.pathname;
+    if (path && path !== '/' && path.endsWith('.pdf')) {
+      // Try to auto-select the PDF if not already selected
+      setSelectedPDF(prev => {
+        if (prev && prev.name === path.slice(1)) return prev;
+        // Otherwise, trigger PDFList to select this PDF
+        return { name: path.slice(1) };
+      });
+    }
+  }, [location.pathname]);
 
   const handleSelectPDF = (pdf) => {
     setSelectedPDF(pdf);
+    if (pdf && pdf.name) {
+      navigate(`/${pdf.name}`, { replace: false });
+    } else {
+      navigate(`/`, { replace: false });
+    }
   };
 
   const handleUploadSuccess = () => {

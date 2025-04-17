@@ -45,9 +45,15 @@ const PDFList = ({ onSelectPDF }) => {
   const generateThumbnail = async (pdfKey) => {
     try {
       const url = await getPDFUrl(pdfKey);
-      
+      // Always decode the URL before passing to pdfjsLib
+      let decodedUrl;
+      try {
+        decodedUrl = decodeURIComponent(url);
+      } catch (e) {
+        decodedUrl = url;
+      }
       // Load the PDF document
-      const loadingTask = pdfjsLib.getDocument(url);
+      const loadingTask = pdfjsLib.getDocument({ url: decodedUrl });
       const pdf = await loadingTask.promise;
       
       // Get the first page
@@ -87,9 +93,16 @@ const PDFList = ({ onSelectPDF }) => {
   const handleSelectPDF = async (pdf) => {
     try {
       const url = await getPDFUrl(pdf.Key);
+      // Always decode the URL before passing to PDFViewer
+      let decodedUrl;
+      try {
+        decodedUrl = decodeURIComponent(url);
+      } catch (e) {
+        decodedUrl = url;
+      }
       onSelectPDF({
         name: pdf.Key,
-        url: url,
+        url: decodedUrl,
         size: pdf.Size,
         lastModified: pdf.LastModified
       });
