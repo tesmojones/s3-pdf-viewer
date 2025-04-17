@@ -226,13 +226,13 @@ const PDFViewer = ({ pdfFile }) => {
     <Paper elevation={3} sx={{ 
       p: 1, 
       height: '100%', 
-      width: '100%',
+      width: '1150px',
       display: 'flex', 
       flexDirection: 'column',
       overflow: 'hidden'
     }} ref={containerRef}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-        <Typography variant="h6" noWrap sx={{ maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <Typography variant="h6" noWrap sx={{ maxWidth: '90%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {pdfFile.name.replace(/\.pdf$/i, '').replace(/\.pdf$/i, '')}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
