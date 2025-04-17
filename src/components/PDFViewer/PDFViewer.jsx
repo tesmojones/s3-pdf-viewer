@@ -513,7 +513,7 @@ const PDFViewer = ({ pdfFile }) => {
   
   return (
     <Paper 
-      elevation={3} 
+      elevation={2} 
       sx={{ 
         height: '100%', 
         width: '1100px',
@@ -521,8 +521,8 @@ const PDFViewer = ({ pdfFile }) => {
         flexDirection: 'column',
         overflow: 'hidden',
         borderRadius: 2,
-        background: 'linear-gradient(145deg, #f8f9fa, #ffffff)',
-        boxShadow: isFullscreen ? 'none' : '0 10px 40px rgba(0, 0, 0, 0.1)',
+        background: '#ffffff',
+        boxShadow: isFullscreen ? 'none' : '0 4px 20px rgba(0, 0, 0, 0.08)',
         transition: 'all 0.3s ease',
         position: 'relative',
         '&::before': {
@@ -531,7 +531,7 @@ const PDFViewer = ({ pdfFile }) => {
           top: 0,
           left: 0,
           right: 0,
-          height: '4px',
+          height: '3px',
           background: 'linear-gradient(90deg, #1976d2, #42a5f5)',
           borderTopLeftRadius: '8px',
           borderTopRightRadius: '8px',
@@ -547,8 +547,6 @@ const PDFViewer = ({ pdfFile }) => {
           alignItems: 'center', 
           p: 2,
           borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-          background: 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(10px)',
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
@@ -616,9 +614,7 @@ const PDFViewer = ({ pdfFile }) => {
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          bgcolor: '#f5f5f5',
-          backgroundImage: 'radial-gradient(#e0e0e0 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
+          bgcolor: '#f8f8f8',
         }}
       >
         {/* Navigation buttons positioned on sides - always visible */}
@@ -748,9 +744,6 @@ const PDFViewer = ({ pdfFile }) => {
               padding: '16px', 
               width: '100%', 
               textAlign: 'center',
-              bgcolor: 'white',
-              borderRadius: 1,
-              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
               maxWidth: '850px',
               margin: '0 auto'
             }}
@@ -777,14 +770,13 @@ const PDFViewer = ({ pdfFile }) => {
           alignItems: 'center', 
           p: 1,
           borderTop: '1px solid rgba(0, 0, 0, 0.06)',
-          background: 'rgba(255, 255, 255, 0.8)',
         }}
       >
         <Box 
           sx={{ 
             display: 'flex', 
             alignItems: 'center', 
-            bgcolor: 'rgba(0, 0, 0, 0.03)', 
+            background: 'rgba(0, 0, 0, 0.03)',
             borderRadius: 2,
             px: 1.5,
             py: 0.5,
